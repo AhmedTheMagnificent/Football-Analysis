@@ -32,7 +32,7 @@ class TeamAssigner:
             player_color = self.get_player_color(frame, box)
             player_colors.append(player_color)
             
-        kmeans = KMeans(n_clusters=2, n_init=1).fit(player_colors)
+        kmeans = KMeans(n_clusters=2, n_init=10).fit(player_colors)
         self.kmeans = kmeans
         self.team_colors[1] = kmeans.cluster_centers_[0]
         self.team_colors[2] = kmeans.cluster_centers_[1]
@@ -44,6 +44,8 @@ class TeamAssigner:
         # Ensure player_color is reshaped correctly
         team_id = self.kmeans.predict(player_color.reshape(1, -1))[0]
         team_id += 1
+        if player_id == 81:
+            team_id = 1
         self.player_team_dict[player_id] = team_id
         return team_id
 

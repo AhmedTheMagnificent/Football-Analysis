@@ -1,6 +1,7 @@
 import sys
 sys.path.append("../")
 from utils import get_center_of_box, measure_distance
+import numpy as np
 
 class PlayerBallAssigner():
     def __init__(self):
