@@ -3,6 +3,7 @@ import supervision as sv
 import pickle
 import numpy as np
 import cv2 as cv
+import pandas as pd
 import os
 import sys
 sys.path.append("../")
@@ -146,6 +147,16 @@ class Tracker:
                         (0, 0, 0),
                         2)
         return frame
+    
+    def interpolate_ball_positions(self, ball_positions):
+        ball_positions = [x.get(1, {}).get("box",[]) for x in ball_positions]
+        df_ball_positions = pd.DataFrame(ball_positions, columns=["x1", "y1", "x2", "y2"])
+        
+        df_ball_positions = df_ball_positions.interpolate()
+        df_ball_positions = df_ball_positions.bfill()
+        
+        ball_positions = [{1: {"box":x}} for x in df_ball_positions.to_numpy().tolist()]
+        return ball_positions
 
 
     def draw_annotations(self, input_video_frames, tracks):
@@ -159,7 +170,10 @@ class Tracker:
 
             # Draw players with track ID
             for track_id, player in player_dict.items():
-                frame = self.draw_ellipse(frame, player["box"], (0, 0, 255), track_id, draw_track_id=True)
+                color = player.get("team_color", (0, 0, 255))
+                frame = self.draw_ellipse(frame, player["box"], color, track_id, draw_track_id=True)
+                if player.get("has_ball", False):
+                    frame = self.draw_triangle(frame, player["box"], (0, 0, 255))
 
             # Draw referees without track ID
             for _, referee in referee_dict.items():
